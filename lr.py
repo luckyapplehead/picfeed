@@ -18,14 +18,14 @@ spark = SparkSession(sc)
 
 fieldSchema = StructType([StructField("ctr", DoubleType(), True),
   StructField("label", IntegerType(), True),
-    StructField("pdef", DoubleType(), True),
-	  StructField("pbeau", DoubleType(), True),
-	    StructField("pnum", IntegerType(), True),
-		  StructField("s_term_score", DoubleType(), True),
-		    StructField("sumclick", LongType(), True),
-			  StructField("sumshow", LongType(), True),
-			    StructField("uid", LongType(), True)
-				])
+  StructField("pdef", DoubleType(), True),
+  StructField("pbeau", DoubleType(), True),
+  StructField("pnum", IntegerType(), True),
+  StructField("s_term_score", DoubleType(), True),
+  StructField("sumclick", LongType(), True),
+  StructField("sumshow", LongType(), True),
+  StructField("uid", LongType(), True)
+])
 
 print "begin to map input"
 train_set = spark.read.csv("gs://dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/train_feature_test/part-*", schema=fieldSchema)
@@ -51,21 +51,21 @@ trainingSummary = lrModel.summary
 objectiveHistory = trainingSummary.objectiveHistory
 print("objectiveHistory:")
 for objective in objectiveHistory:
-	    print(objective)
+    print(objective)
 # Obtain the receiver-operating characteristic as a dataframe and areaUnderROC.
-		trainingSummary.roc.show()
-		print("areaUnderROC: " + str(trainingSummary.areaUnderROC))
+trainingSummary.roc.show()
+print("areaUnderROC: " + str(trainingSummary.areaUnderROC))
 
-		fprecision = trainingSummary.precisionByThreshold
-		print "fprecision"
-		fprecision.show()
+fprecision = trainingSummary.precisionByThreshold
+print "fprecision"
+fprecision.show()
 
-		maxPrecision = fprecision.groupBy().max('precision').select('max(precision)').head()['max(precision)']
-		print "max precision"
-		print maxPrecision
-		bestThreshold = fprecision.where(maxPrecision - fprecision.precision < 0.00001).select('threshold').head()
-		print "bestThreshold"
-		print bestThreshold
+maxPrecision = fprecision.groupBy().max('precision').select('max(precision)').head()['max(precision)']
+print "max precision"
+print maxPrecision
+bestThreshold = fprecision.where(maxPrecision - fprecision.precision < 0.00001).select('threshold').head()
+print "bestThreshold"
+print bestThreshold
 
 
 # Set the model threshold to maximize F-Measure

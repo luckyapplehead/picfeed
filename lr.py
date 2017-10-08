@@ -137,3 +137,4 @@ result_all_2.show()
 model_path = "gs://dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/lr_model_test"
 #lrModel.save(model_path)
 print "finish"
+

@@ -28,7 +28,7 @@ fieldSchema = StructType([StructField("ctr", DoubleType(), True),
 ])
 
 print "begin to map input"
-train_set = spark.read.csv("gs://dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/train_feature_test/part-*", schema=fieldSchema)
+train_set = spark.read.csv("https://storage.googleapis.com/dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/train_feature_test_compose", schema=fieldSchema)
 train_set_r = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.sumshow)))
 print train_set_r.take(5)
 

@@ -10,7 +10,7 @@ from pyspark.sql.session import SparkSession
 from pyspark.sql import Row
 from pyspark.sql.types import *
 from pyspark.ml.linalg import Vectors
-from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.feature import ChiSqSelector
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 sc = SparkContext('local')
 spark = SparkSession(sc)
@@ -28,9 +28,11 @@ fieldSchema = StructType([StructField("ctr", DoubleType(), True),
 
 print "begin to map input"
 train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/train_feature_compose_new/part-*", schema=fieldSchema)
-df = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.sumshow)))
-print df.take(5)
+train_set_d = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.sumshow)))
+print train_set_d.take(5)
 print "finish map input"
+df = spark.createDataFrame(train_set_d, ['features', 'label'])
+df.show()
 
 selector = ChiSqSelector(numTopFeatures=3, featuresCol="features",
                              outputCol="selectedFeatures", labelCol="label")

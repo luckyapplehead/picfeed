@@ -27,10 +27,8 @@ fieldSchema = StructType([StructField("ctr", DoubleType(), True),
 
 
 print "begin to map input"
-train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/train_feature_compose_new/part-*", sch
-ema=fieldSchema)
-train_set_r = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.
-sumshow)))
+train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/train_feature_compose_new/part-*", schema=fieldSchema)
+train_set_r = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.sumshow)))
 print train_set_r.take(5)
 print "finish map input"
 train_set_d = spark.createDataFrame(train_set_r)

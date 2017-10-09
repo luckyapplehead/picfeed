@@ -38,7 +38,7 @@ print "finish map input"
 train_set_d = spark.createDataFrame(train_set_r)
 (training, test) = train_set_d.randomSplit([0.99, 0.01])
 #train
-dt = DecisionTreeClassifier(maxDepth=10)
+dt = DecisionTreeClassifier(maxDepth=5)
 model = dt.fit(training)
 print "model.numNodes"
 print model.numNodes

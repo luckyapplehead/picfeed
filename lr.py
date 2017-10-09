@@ -28,15 +28,15 @@ fieldSchema = StructType([StructField("ctr", DoubleType(), True),
 ])
 
 print "begin to map input"
-train_set = spark.read.csv("gs://dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/train_feature_test/part-*", schema=fieldSchema)
+train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/train_feature_compose_new/part-*", schema=fieldSchema)
 train_set_r = train_set.rdd.map(lambda p: Row(label=p.label, features=Vectors.dense(p.ctr, p.pnum, p.pdef, p.pbeau, p.s_term_score, p.sumclick, p.sumshow)))
 print train_set_r.take(5)
 
 print "finish map input"
 train_set_d = spark.createDataFrame(train_set_r)
-(training, test) = train_set_d.randomSplit([0.9, 0.1])
+(training, test) = train_set_d.randomSplit([0.99, 0.01])
 #train
-lr = LogisticRegression(maxIter=10, regParam=0.3)
+lr = LogisticRegression(maxIter=30, regParam=0.3, elasticNetParam=0.1)
 lrModel = lr.fit(training)
 print "coefficients"
 print lrModel.coefficients
@@ -55,6 +55,7 @@ for objective in objectiveHistory:
 # Obtain the receiver-operating characteristic as a dataframe and areaUnderROC.
 trainingSummary.roc.show()
 print("areaUnderROC: " + str(trainingSummary.areaUnderROC))
+
 
 fprecision = trainingSummary.precisionByThreshold
 print "fprecision"
@@ -85,15 +86,18 @@ print "original threshold"
 print lr.getThreshold()
 
 
-#lr.setThreshold(bestThreshold['threshold'])
-lr.setThreshold(0.12)
+lr.setThreshold(bestThreshold['threshold'])
+#lr.setThreshold(0.12)
 print "new threshold"
 print lr.getThreshold()
+
+model_path = "gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/lr_model"
+lrModel.save(model_path)
 
 #lr.setThreshold(bestThreshold)
 # $example off$
 #test
-result_all = lrModel.transform(training)
+result_all = lrModel.transform(test)
 evaluator = BinaryClassificationEvaluator(rawPredictionCol="prediction")
 res = evaluator.evaluate(result_all)
 print "evaluator res:"
@@ -134,7 +138,5 @@ WHERE label == 1 and prediction > 0
 result_all_2 = spark.sql(sql_query)
 result_all_2.show()
 
-model_path = "gs://dataproc-0e3e0110-db09-4037-98cc-dc355651aba0-asia-southeast1/tensorflow/data/picfeed/lr_model_test"
-#lrModel.save(model_path)
 print "finish"
 

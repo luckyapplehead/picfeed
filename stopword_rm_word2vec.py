@@ -24,7 +24,7 @@ fieldSchema = StructType([StructField("urlid", LongType(), True),
 
 
 print "begin to map input"
-train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_order/part-*", schema=fieldSchema)
+train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_order/*", schema=fieldSchema)
 
 def combine_uinfo(line):
   s_term = line.s_title + line.s_content

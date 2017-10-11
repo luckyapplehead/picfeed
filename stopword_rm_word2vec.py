@@ -24,19 +24,36 @@ fieldSchema = StructType([StructField("urlid", LongType(), True),
 
 
 print "begin to map input"
-train_set = spark.read.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_order/*", schema=fieldSchema)
 
+train_set = sc.textFile("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_order/*")
+print train_set.take(5)
 def combine_uinfo(line):
-  s_term = line.s_title + line.s_content
-  return (line.urlid, line.title, s_term)
+  line_arr = line.split("\t", 4)
+  arr_len = len(line_arr)
+  if arr_len < 4:
+      if arr_len == 3:
+          s_term_arr = line_arr[2].split(",")
+          return (line_arr[0], line_arr[1], s_term_arr)
+      elif arr_len == 2:
+          s_term_arr = [line_arr[1]]
+          return (line_arr[0], line_arr[1], s_term_arr)
+      else:
+          return (line, "-", [])
+      
+  (urlid, title, s_title, s_content) = line.split("\t")
 
-train_set_combine = train_set.rdd.map(combine_uinfo)
+  s_term = s_title + "," + s_content
+  s_term_arr = s_term.split(",")
+  return (urlid, title, s_term_arr)
+
+
+train_set_combine = train_set.map(combine_uinfo)
 train_set_combine_d = spark.createDataFrame(train_set_combine, ['urlid', 'title', 's_term'])
 train_set_combine_d.show()
 
 remover = StopWordsRemover(inputCol="s_term", outputCol="s_term_filtered")
-remover_res = remover.transform(sentenceData)
-remover_res.show(truncate=False)
+remover_res = remover.transform(train_set_combine_d)
+remover_res.show()
 
 remover_res.createOrReplaceTempView("remover_res")
 
@@ -46,7 +63,7 @@ FROM remover_res
 """
 remover_res_new = spark.sql(sql_query)
 
-remover_res_new.write.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_filtered.set")
+remover_res_new.rdd.saveAsTextFile("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_filtered.set")
 
 #word2vec
 word2Vec = Word2Vec(vectorSize=128, minCount=2, inputCol="s_term_filtered", outputCol="result")
@@ -59,6 +76,6 @@ model.findSynonyms("演艺圈", 5).select("word", fmt("similarity", 5).alias("si
 
 result = model.transform(remover_res_new)
 result.show(truncate=False)
-result.write.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_word2vec.set")
+result.rdd.saveAsTextFile("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/data_term_word2vec.set")
 
 print "finish"

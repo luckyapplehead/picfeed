@@ -83,13 +83,14 @@ fieldSchema3 = StructType([StructField("urlid", StringType(), True),
 remover_res_new = spark.createDataFrame(remover_res_new_map, schema=fieldSchema3)
 
 #word2vec
-word2Vec = Word2Vec(vectorSize=16, minCount=2, inputCol="s_term_filtered", outputCol="result")
+word2Vec = Word2Vec(vectorSize=128, minCount=2, inputCol="s_term_filtered", outputCol="result")
 model = word2Vec.fit(remover_res_new)
-model_path = "gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/word2vec_model"
+model_path = "gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/word2vec_model_new"
 model.save(model_path)
 model.getVectors().show(truncate=False)
 model.findSynonyms("演艺圈", 5).select("word", fmt("similarity", 5).alias("similarity")).show()
 result = model.transform(remover_res_new)
+print "show yanyiquan"
 result.show()
 
 def combine_term_word2vec(line):
@@ -103,7 +104,7 @@ def combine_term_word2vec(line):
   for i in range(0, len(line.result)):
     if len(res_combine) > 0:
       res_combine += ","
-    res_combine += line.result[i]
+    res_combine += str(line.result[i])
   return (line.urlid, line.title, term_combine, res_combine)
 
 w2v_res_write = result.rdd.map(combine_term_word2vec)

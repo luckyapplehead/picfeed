@@ -53,7 +53,7 @@ raw_data_d.show()
 raw_data_d.write.csv("gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/term_doc_count")
 
 
-word_count = raw_data_map.flatMap(lambda x: x.term.split('\t')).map(lambda x: x.split('\a')).map(lambda p: Row(p[0], int(p[1]))).reduceByKey(add)
+word_count = raw_data_map.flatMap(lambda x: x.s_term_filtered.split('\t')).map(lambda x: x.split('\a')).map(lambda p: Row(p[0], int(p[1]))).reduceByKey(add)
 
 fieldSchema2 = StructType([StructField("term", StringType(), True),
   StructField("count", IntegerType(), True)

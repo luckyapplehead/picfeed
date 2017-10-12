@@ -39,7 +39,7 @@ print "model.totalNumNodes"
 print model.totalNumNodes
 print "model.treeWeights"
 
-rint model.treeWeights
+print model.treeWeights
 print "model.featureImportances"
 print model.featureImportances
 print "model.numClasses"

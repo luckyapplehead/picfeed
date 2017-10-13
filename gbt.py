@@ -35,6 +35,10 @@ train_set_d = spark.createDataFrame(train_set_r)
 #train
 dt = GBTClassifier(subsamplingRate=0.7)
 model = dt.fit(training)
+
+model_path = "gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/gbt_model"
+model.save(model_path)
+
 print "model.totalNumNodes"
 print model.totalNumNodes
 print "model.treeWeights"
@@ -42,13 +46,9 @@ print "model.treeWeights"
 print model.treeWeights
 print "model.featureImportances"
 print model.featureImportances
-print "model.numClasses"
-print model.numClasses
 print(model.toDebugString)
 print "model.trees"
 model.trees
-model_path = "gs://dataproc-1228d533-ffe2-4747-a056-8cd396c3db5f-asia-southeast1/data/picfeed/gbt_model"
-model.save(model_path)
 #predict
 result_all = model.transform(test)
 result_all.show(50)
